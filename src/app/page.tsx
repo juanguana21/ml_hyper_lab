@@ -2077,7 +2077,7 @@ export default function MLHyperLab() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <ScrollArea className="h-[360px] pr-2">
+                      <ScrollArea className="h-[clamp(180px,28vh,280px)] pr-2">
                         <div className="space-y-2">
                           {currentAlgo.hyperparams.map((hp) => (
                             <HyperparameterControlWrapper
