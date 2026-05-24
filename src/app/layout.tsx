@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     "Ciencia de Datos",
   ],
   icons: {
-    icon: "/logo.svg",
+    icon: "logo.svg",
   },
 };
 
