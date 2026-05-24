@@ -1989,7 +1989,7 @@ export default function MLHyperLab() {
               {/* Main Content: Controls + Results */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Left Panel */}
-                <div className="lg:col-span-5 lg:sticky lg:top-20 lg:self-start flex flex-col gap-4 lg:max-h-[calc(100vh-7rem)]">
+                <div className="lg:col-span-5 lg:sticky lg:top-20 lg:self-start flex flex-col gap-4 lg:h-[calc(100vh-7rem)] lg:max-h-[calc(100vh-7rem)] lg:overflow-hidden">
                   <Card>
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
@@ -2057,8 +2057,8 @@ export default function MLHyperLab() {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader className="pb-2">
+                  <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    <CardHeader className="pb-2 shrink-0">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm">Hiperparámetros</CardTitle>
                         <Button
@@ -2076,8 +2076,8 @@ export default function MLHyperLab() {
                         <Info className="h-3 w-3 inline" /> para ver la explicación de cada parámetro.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="h-[clamp(180px,28vh,280px)] pr-2">
+                    <CardContent className="flex-1 min-h-0 overflow-hidden">
+                      <ScrollArea className="h-full pr-2">
                         <div className="space-y-2">
                           {currentAlgo.hyperparams.map((hp) => (
                             <HyperparameterControlWrapper
