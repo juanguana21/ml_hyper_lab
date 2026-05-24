@@ -1,0 +1,8 @@
+{
+  "name": "ml-service",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "cd /home/z/my-project/mini-services/ml-service && python3 main.py",
+    "start": "python3 main.py"
+  }
+}
