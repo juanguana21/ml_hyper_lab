@@ -197,6 +197,37 @@ function prepareCleanParams(
   return cleanParams;
 }
 
+const TREE_ALGO_IDS = new Set([
+  'decision_tree',
+  'random_forest',
+  'decision_tree_regressor',
+  'random_forest_regressor',
+]);
+
+function usesUnlimitedDepth(
+  configKey: string,
+  algoId: string,
+  value: number | string | null | undefined
+) {
+  return configKey === 'max_depth' && TREE_ALGO_IDS.has(algoId) && (value === 0 || value === null || value === undefined);
+}
+
+function formatPythonValue(value: number | string | null | undefined) {
+  if (value === null || value === undefined) return 'None';
+  if (value === 'True' || value === 'False') return value;
+  if (typeof value === 'number') return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(4)));
+  return `"${value}"`;
+}
+
+function getPythonSnippet(config: HyperparamConfig, value: number | string | null, algoId: string) {
+  const className = config.pythonLib.split('.').pop() ?? config.pythonLib;
+  const pythonValue = usesUnlimitedDepth(config.key, algoId, value)
+    ? 'None'
+    : formatPythonValue(value);
+
+  return `${className}(${config.pythonParam}=${pythonValue})`;
+}
+
 // ============================================================
 // Component: HyperparameterControlWrapper
 // ============================================================
@@ -227,22 +258,23 @@ function HyperparameterControlWrapper({
 
   const isMaxDepthUnlimited =
     config.key === 'max_depth' &&
-    (algoId === 'decision_tree' || algoId === 'random_forest') &&
+    TREE_ALGO_IDS.has(algoId) &&
     (value === 0 || value === null || value === undefined);
 
   const displayValue = isMaxDepthUnlimited ? '∞' : value;
 
   const sliderValue =
     config.key === 'max_depth' &&
-    (algoId === 'decision_tree' || algoId === 'random_forest') &&
+    TREE_ALGO_IDS.has(algoId) &&
     (value === null || value === undefined)
       ? 0
       : (value as number);
+  const pythonSnippet = getPythonSnippet(config, value, algoId);
 
   const handleSliderChange = (v: number[]) => {
     if (
       config.key === 'max_depth' &&
-      (algoId === 'decision_tree' || algoId === 'random_forest') &&
+      TREE_ALGO_IDS.has(algoId) &&
       v[0] === 0
     ) {
       onChange(config.key, null);
@@ -253,12 +285,12 @@ function HyperparameterControlWrapper({
 
   return (
     <div className="space-y-1.5 py-2 px-3 rounded-lg border border-border/50 bg-card/50 hover:bg-card/80 transition-colors">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <label className="text-sm font-medium text-foreground truncate flex items-center gap-1.5">
-            <span>{config.label}</span>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2 flex-1 min-w-0">
+          <label className="text-sm font-medium text-foreground flex flex-col gap-1.5 min-w-0">
+            <span className="leading-tight">{config.label}</span>
             <code className="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
-              {config.pythonParam}
+              Python: {pythonSnippet}
             </code>
           </label>
           <TooltipProvider delayDuration={200}>
@@ -281,7 +313,7 @@ function HyperparameterControlWrapper({
                 <div className="bg-slate-800 text-green-400 rounded p-2 text-xs font-mono">
                   <span className="text-slate-500"># Python ({config.pythonLib})</span>
                   <br />
-                  <span className="text-blue-300">model</span> = <span className="text-yellow-300">{config.pythonLib.split('.').pop()}</span>(<span className="text-orange-300">{config.pythonParam}</span>=<span className="text-green-300">{value}</span>)
+                  <span className="text-blue-300">model</span> = <span className="text-yellow-300">{pythonSnippet}</span>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -2025,8 +2057,8 @@ export default function MLHyperLab() {
                     </CardContent>
                   </Card>
 
-                  <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                    <CardHeader className="pb-2 shrink-0">
+                  <Card>
+                    <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm">Hiperparámetros</CardTitle>
                         <Button
@@ -2044,8 +2076,8 @@ export default function MLHyperLab() {
                         <Info className="h-3 w-3 inline" /> para ver la explicación de cada parámetro.
                       </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1 min-h-0 overflow-hidden">
-                      <ScrollArea className="h-full max-h-[400px] pr-2">
+                    <CardContent>
+                      <ScrollArea className="h-[360px] pr-2">
                         <div className="space-y-2">
                           {currentAlgo.hyperparams.map((hp) => (
                             <HyperparameterControlWrapper
